@@ -41,7 +41,7 @@ def execute_query(query):
 
 TOKEN = os.environ.get("GH_TOKEN", "")
 
-OWNERS = "owner:simonw owner:dogsheep owner:datasette"
+OWNERS = "owner:FaizHarofi owner:dogsheep owner:datasette"
 
 # How many hours back the scheduled (incremental) run looks at. The workflow
 # runs hourly, so 3 hours gives a comfortable overlap in case a run is skipped.
