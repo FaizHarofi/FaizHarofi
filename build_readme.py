@@ -39,7 +39,7 @@ def execute_query(query):
             print("  GraphQL network error, retrying...")
         time.sleep(2**attempt)
 
-TOKEN = os.environ.get("SIMONW_TOKEN", "")
+TOKEN = os.environ.get("GH_TOKEN", "")
 
 OWNERS = "owner:simonw owner:dogsheep owner:datasette"
 
