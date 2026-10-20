@@ -4,11 +4,7 @@ Currently working on [Datasette](https://datasette.io/), [LLM](https://llm.datas
 
 ### Recent Work
 <!-- recent_releases starts -->
-[usgs-scraper](https://github.com/simonw/usgs-scraper) - 2026-10-20
-
-[scrape-florida-outages](https://github.com/simonw/scrape-florida-outages) - 2026-10-20
-
-[scrape-fema-shelters](https://github.com/simonw/scrape-fema-shelters) - 2026-10-20
+[FaizHarofi](https://github.com/FaizHarofi/FaizHarofi) - 2026-10-20
 <!-- recent_releases ends -->
 More on [GitHub](https://github.com/FaizHarofi?tab=repositories)
 </td><td valign="top" width="34%">
