@@ -2,25 +2,15 @@ Currently working on [Datasette](https://datasette.io/), [LLM](https://llm.datas
 
 <table><tr><td valign="top" width="33%">
 
-### Recent releases
+### Recent Work
 <!-- recent_releases starts -->
-[llm-tools-datasette 0.1.1](https://github.com/simonw/llm-tools-datasette/releases/tag/0.1.1) - 2026-10-18
+[usgs-scraper](https://github.com/simonw/usgs-scraper) - 2026-10-20
 
-[llm-echo 0.5](https://github.com/simonw/llm-echo/releases/tag/0.5) - 2026-10-18
+[scrape-florida-outages](https://github.com/simonw/scrape-florida-outages) - 2026-10-20
 
-[web-edit 0.1a2](https://github.com/simonw/web-edit/releases/tag/0.1a2) - 2026-10-17
-
-[llm-gemini 0.35](https://github.com/simonw/llm-gemini/releases/tag/0.35) - 2026-10-13
-
-[llm-meta-ai 0.2](https://github.com/simonw/llm-meta-ai/releases/tag/0.2) - 2026-10-12
-
-[datasette-ports 0.4](https://github.com/datasette/datasette-ports/releases/tag/0.4) - 2026-10-12
-
-[ttok 1.0](https://github.com/simonw/ttok/releases/tag/1.0) - 2026-10-09
-
-[llm-openai-decisions 0.1a0](https://github.com/simonw/llm-openai-decisions/releases/tag/0.1a0) - 2026-10-06
+[scrape-fema-shelters](https://github.com/simonw/scrape-fema-shelters) - 2026-10-20
 <!-- recent_releases ends -->
-More [recent releases](https://github.com/simonw/simonw/blob/main/releases.md)
+More on [GitHub](https://github.com/FaizHarofi?tab=repositories)
 </td><td valign="top" width="34%">
 
 ### On my blog
