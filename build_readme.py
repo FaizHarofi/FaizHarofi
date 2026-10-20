@@ -86,6 +86,7 @@ query {
         name
         description
         url
+        pushedAt
         owner {
           login
         }
@@ -339,6 +340,7 @@ def build(query_string, full_release_pagination):
     """Scan repos matching query_string, mirror their files, update the cache."""
     cache = load_releases_cache()
     repo_nodes = fetch_repos(query_string)
+    recent_work = most_recent_work(repo_nodes)
 
     written = 0
     for repo in repo_nodes:
@@ -350,7 +352,7 @@ def build(query_string, full_release_pagination):
 
     save_releases_cache(cache)
     print("Scanned {} repos, wrote files for {}".format(len(repo_nodes), written))
-    return cache
+    return cache, recent_work
 
 
 def most_recent_releases(cache):
@@ -370,6 +372,28 @@ def most_recent_releases(cache):
             }
         )
     return releases
+
+
+def most_recent_work(repo_nodes):
+    """Build a list of recently updated repositories."""
+    work = []
+    for repo in repo_nodes:
+        if repo["name"] in SKIP_REPOS:
+            continue
+        pushed_at = repo.get("pushedAt")
+        if not pushed_at:
+            continue
+        work.append(
+            {
+                "repo": repo["name"],
+                "url": repo["url"],
+                "description": repo.get("description"),
+                "pushed_at": pushed_at,
+                "pushed_day": pushed_at.split("T")[0],
+            }
+        )
+    work.sort(key=lambda repo: repo["pushed_at"], reverse=True)
+    return work
 
 
 def fetch_tils():
@@ -410,23 +434,23 @@ if __name__ == "__main__":
         or not RELEASES_CACHE_PATH.exists()
     ):
         print("Running full scan against every repo...")
-        cache = build(everything_query(), full_release_pagination=True)
+        cache, recent_work = build(everything_query(), full_release_pagination=True)
     else:
         print(
             "Running incremental scan (repos pushed in the last {} hours)...".format(
                 INCREMENTAL_HOURS
             )
         )
-        cache = build(incremental_query(), full_release_pagination=False)
+        cache, recent_work = build(incremental_query(), full_release_pagination=False)
 
     releases = most_recent_releases(cache)
     releases.sort(key=lambda r: r["published_at"], reverse=True)
     md = "\n\n".join(
         [
-            "[{repo} {release}]({url}) - {published_day}".format(**release)
-            for release in releases[:8]
+            "[{repo}]({url}) - {pushed_day}".format(**repo)
+            for repo in recent_work[:8]
         ]
-    )
+    ) or "No recent work found."
     readme_contents = readme.open().read()
     rewritten = replace_chunk(readme_contents, "recent_releases", md)
 
