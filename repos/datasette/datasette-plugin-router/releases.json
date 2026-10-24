@@ -1,0 +1,51 @@
+{
+  "description": null,
+  "owner": "datasette",
+  "releases": [
+    {
+      "author": "asg017",
+      "published_at": "2026-07-12T19:16:28Z",
+      "published_day": "2026-07-12",
+      "release": "0.0.1a6",
+      "url": "https://github.com/datasette/datasette-plugin-router/releases/tag/0.0.1a6"
+    },
+    {
+      "author": "asg017",
+      "published_at": "2026-07-12T19:07:47Z",
+      "published_day": "2026-07-12",
+      "release": "0.0.1a5",
+      "url": "https://github.com/datasette/datasette-plugin-router/releases/tag/0.0.1a5"
+    },
+    {
+      "author": "asg017",
+      "published_at": "2026-06-24T21:29:36Z",
+      "published_day": "2026-06-24",
+      "release": "0.0.1a4",
+      "url": "https://github.com/datasette/datasette-plugin-router/releases/tag/0.0.1a4"
+    },
+    {
+      "author": "asg017",
+      "published_at": "2026-05-04T19:32:29Z",
+      "published_day": "2026-05-04",
+      "release": "0.0.1a3",
+      "url": "https://github.com/datasette/datasette-plugin-router/releases/tag/0.0.1a3"
+    },
+    {
+      "author": "asg017",
+      "published_at": "2026-01-27T05:48:48Z",
+      "published_day": "2026-01-27",
+      "release": "0.0.1a2",
+      "url": "https://github.com/datasette/datasette-plugin-router/releases/tag/0.0.1a2"
+    },
+    {
+      "author": "asg017",
+      "published_at": "2025-12-23T04:29:05Z",
+      "published_day": "2025-12-23",
+      "release": "0.0.1a1",
+      "url": "https://github.com/datasette/datasette-plugin-router/releases/tag/0.0.1a1"
+    }
+  ],
+  "repo": "datasette-plugin-router",
+  "total_releases": 6,
+  "url": "https://github.com/datasette/datasette-plugin-router"
+}

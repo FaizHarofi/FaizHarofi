@@ -1,0 +1,30 @@
+{
+  "description": "Web app for editing files in a folder",
+  "owner": "simonw",
+  "releases": [
+    {
+      "author": "simonw",
+      "published_at": "2026-10-17T13:16:49Z",
+      "published_day": "2026-10-17",
+      "release": "0.1a2",
+      "url": "https://github.com/simonw/web-edit/releases/tag/0.1a2"
+    },
+    {
+      "author": "simonw",
+      "published_at": "2026-10-13T01:40:05Z",
+      "published_day": "2026-10-13",
+      "release": "0.1a1",
+      "url": "https://github.com/simonw/web-edit/releases/tag/0.1a1"
+    },
+    {
+      "author": "simonw",
+      "published_at": "2026-10-12T15:54:36Z",
+      "published_day": "2026-10-12",
+      "release": "0.1a0",
+      "url": "https://github.com/simonw/web-edit/releases/tag/0.1a0"
+    }
+  ],
+  "repo": "web-edit",
+  "total_releases": 3,
+  "url": "https://github.com/simonw/web-edit"
+}

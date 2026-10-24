@@ -1,0 +1,277 @@
+# datasette-cron
+
+[![PyPI](https://img.shields.io/pypi/v/datasette-cron.svg)](https://pypi.org/project/datasette-cron/)
+[![Changelog](https://img.shields.io/github/v/release/datasette/datasette-cron?include_prereleases&label=changelog)](https://github.com/datasette/datasette-cron/releases)
+[![Tests](https://github.com/datasette/datasette-cron/actions/workflows/test.yml/badge.svg)](https://github.com/datasette/datasette-cron/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/datasette/datasette-cron/blob/main/LICENSE)
+
+Database-backed scheduled tasks for Datasette.
+
+Plugins can register handler functions, then create tasks that run on a
+schedule. Tasks persist across restarts, support cron expressions and intervals,
+and record execution history.
+
+<img src="docs/screenshots/index.png" width="800" alt="The cron task list showing four scheduled tasks — an hourly import with a red error status dot, a nightly report on a cron schedule with an America/New_York timezone, a five-minute feed refresh and a disabled weekly digest — each with its handler, schedule, next-run countdown and Run now / Enabled buttons, with the registered handler names listed underneath">
+
+## Installation
+
+```bash
+pip install datasette-cron
+```
+
+## Quick Start
+
+A plugin registers a handler function and creates a task that runs on a
+schedule:
+
+```python
+from datasette import hookimpl
+
+@hookimpl
+def cron_register_handlers(datasette):
+    async def my_handler(datasette, config):
+        db = datasette.get_database(config["database"])
+        await db.execute_write("INSERT INTO log (message) VALUES ('tick')")
+
+    return {"my-handler": my_handler}
+
+@hookimpl
+def startup(datasette):
+    async def inner():
+        scheduler = datasette._cron_scheduler
+        await scheduler.add_task(
+            name="log-every-minute",
+            handler="myplugin:my-handler",
+            schedule={"interval": 60},
+            config={"database": "mydb"},
+        )
+    return inner
+```
+
+## How It Works
+
+1. **Startup**: datasette-cron creates a `Scheduler` at
+   `datasette._cron_scheduler` and collects handlers from all plugins via the
+   `cron_register_handlers` hook
+2. **Boot**: Once every plugin's `startup` hook has completed, Datasette
+   launches the scheduler loop (registered via `datasette.add_background_task`)
+   as a supervised background task, ticking every ~1 second — no HTTP
+   traffic required
+3. **Each tick**: Queries `datasette_cron_tasks` for tasks where
+   `next_run_at <= now` and `enabled = 1`
+4. **Execution**: Looks up the handler function, calls it with
+   `(datasette, config)`, records the result in `datasette_cron_runs`
+5. **Next run**: Advances `next_run_at` based on the schedule
+
+## Plugin Hook
+
+### `cron_register_handlers(datasette)`
+
+Return a dict mapping handler names to callable functions:
+
+```python
+@hookimpl
+def cron_register_handlers(datasette):
+    return {
+        "check-feeds": check_feeds_handler,
+        "cleanup": cleanup_handler,
+    }
+```
+
+Handlers are registered with a plugin-derived prefix. If your plugin module is
+`datasette_myplugin`, handlers are accessible as `myplugin:check-feeds` and
+`myplugin:cleanup`.
+
+### Handler Signature
+
+```python
+async def my_handler(datasette, config):
+    """
+    datasette: the Datasette instance
+    config: dict from the task's config field
+    """
+    pass
+```
+
+Handlers can be sync or async.
+
+## Scheduler API
+
+Access the scheduler via `datasette._cron_scheduler` after startup.
+
+### `add_task()`
+
+Create or update a task (idempotent upsert). If the task already exists,
+`next_run_at` is preserved.
+
+```python
+await scheduler.add_task(
+    name="my-task",
+    handler="myplugin:my-handler",
+    schedule={"interval": 300},          # every 5 minutes
+    config={"key": "value"},             # passed to handler
+    timezone="America/New_York",         # optional
+    overlap="skip",                      # "skip" prevents overlapping runs
+    retry={"max_retries": 3, "backoff": "exponential"},
+)
+```
+
+### Schedule Types
+
+**Interval** (seconds):
+
+```python
+schedule={"interval": 60}        # every 60 seconds
+schedule={"interval": 1}         # every second
+```
+
+**Cron expression**:
+
+```python
+schedule="0 8 * * *"             # daily at 8am
+schedule="*/5 * * * *"           # every 5 minutes
+```
+
+**RFC 5545 RRULE**:
+
+```python
+schedule={"rrule": "FREQ=WEEKLY;BYDAY=MO"}
+```
+
+### Other Methods
+
+```python
+await scheduler.remove_task("my-task")
+await scheduler.trigger_task("my-task")       # run immediately
+await scheduler.set_enabled("my-task", False) # disable (True to enable)
+await scheduler.update_task("my-task", schedule={"interval": 10})
+```
+
+## Data Models
+
+Query results from `InternalDB` return typed dataclasses:
+
+```python
+from datasette_cron.models import CronTask, CronRun
+
+task: CronTask = await scheduler.internal_db.get_task("my-task")
+print(task.name, task.handler, task.next_run_at, task.last_status)
+
+runs: list[CronRun] = await scheduler.internal_db.get_runs("my-task")
+for run in runs:
+    print(run.started_at, run.status, run.duration_ms)
+```
+
+### `CronTask`
+
+| Field             | Type          | Description                                       |
+| ----------------- | ------------- | ------------------------------------------------- |
+| `name`            | `str`         | Unique task identifier                            |
+| `handler`         | `str`         | Handler reference (e.g., `"myplugin:my-handler"`) |
+| `config`          | `dict`        | JSON config passed to handler                     |
+| `schedule_type`   | `str`         | `"interval"`, `"cron"`, or `"rrule"`              |
+| `schedule_config` | `str`         | JSON schedule parameters                          |
+| `timezone`        | `str \| None` | IANA timezone                                     |
+| `overlap_policy`  | `str`         | `"skip"` or `"allow"`                             |
+| `retry_max`       | `int`         | Max retry attempts                                |
+| `retry_backoff`   | `str`         | `"exponential"` or `"linear"`                     |
+| `enabled`         | `bool`        | Whether task is active                            |
+| `next_run_at`     | `str \| None` | ISO timestamp of next scheduled run               |
+| `last_run_at`     | `str \| None` | ISO timestamp of last run                         |
+| `last_status`     | `str \| None` | `"success"` or `"error"`                          |
+
+### `CronRun`
+
+| Field           | Type          | Description                            |
+| --------------- | ------------- | -------------------------------------- |
+| `id`            | `int`         | Auto-increment ID                      |
+| `task_name`     | `str`         | Which task this run belongs to         |
+| `started_at`    | `str`         | ISO timestamp                          |
+| `finished_at`   | `str \| None` | ISO timestamp                          |
+| `status`        | `str`         | `"running"`, `"success"`, `"error"`, or `"abandoned"` |
+| `error_message` | `str \| None` | Error details on failure               |
+| `attempt`       | `int`         | Retry attempt number                   |
+| `duration_ms`   | `int \| None` | Execution time in milliseconds         |
+
+## REST API
+
+| Method | Endpoint                           | Description           |
+| ------ | ---------------------------------- | --------------------- |
+| GET    | `/-/api/cron/tasks`                | List all tasks        |
+| GET    | `/-/api/cron/tasks/{name}`         | Task detail           |
+| GET    | `/-/api/cron/tasks/{name}/runs`    | Run history           |
+| POST   | `/-/api/cron/tasks/{name}/trigger` | Trigger immediate run |
+| POST   | `/-/api/cron/tasks/{name}/enable`  | Enable/disable task   |
+
+All endpoints require the `datasette-cron-access` permission.
+
+## Database Tables
+
+Stored in Datasette's internal database:
+
+**`datasette_cron_tasks`** — task definitions and scheduling state
+
+**`datasette_cron_runs`** — execution history with timing, status, and errors.
+Only the most recent 100 runs per task are kept (`RUNS_RETAIN_PER_TASK` in
+`datasette_cron/internal_db.py`); older rows are pruned automatically whenever
+a new run starts. Runs left in `"running"` state by a crashed process are
+marked `"abandoned"` on the next startup.
+
+Each task's detail page at `/-/cron/<name>` shows this history — statuses,
+durations, retry attempts and error messages:
+
+<img src="docs/screenshots/detail.png" width="800" alt="The task detail page for a flaky hourly import: cards for handler, schedule, next run and last run (red error dot), and a run history table with three ConnectionError rows for retry attempts 1 to 3, a success that recovered on attempt 2 after a TimeoutError, per-run durations, and an abandoned run from a crashed process">
+
+## Deployment
+
+> [!WARNING]
+> **Run datasette-cron as a single process.** Each worker process spins up
+> its own scheduler and independently fires due tasks — there is no leader
+> election or row-level claim yet. Running under `uvicorn --workers N`,
+> `gunicorn -w N`, or any multi-process container will cause every task to
+> fire N times per scheduled slot.
+>
+> Stick to one worker per deployment (`uvicorn --workers 1`, which is also
+> the default for `datasette serve`). Multi-worker safety is tracked as
+> future work.
+
+### Operational notes
+
+- **Execution is at-least-once — write idempotent handlers.** A task's run
+  is spawned *before* its `next_run_at` is advanced, so a crash in that
+  window re-runs the task on restart. Overlap policies (`skip`/`cancel`)
+  are also per-process and in-memory: they do not survive restarts and do
+  not coordinate across processes. Handlers should tolerate being invoked
+  twice for the same scheduled slot.
+- **Scheduling is best-effort, not real-time.** `next_run_at` is recomputed
+  from the wall-clock time the scheduler observes the task as due, plus a
+  small jitter, so intervals mean "at least N seconds between scheduled
+  starts" rather than exact phase-locked boundaries.
+
+## Development
+
+```bash
+just dev                  # start dev server
+just test                 # run tests
+just format               # format code (backend + frontend)
+just check                # lint + type check (backend + frontend)
+just types                # regenerate frontend types from Python sources
+just types-check-fresh    # CI hook: fail if generated types are stale
+just shots                # regenerate the committed doc screenshots
+```
+
+`frontend/api.d.ts` and `frontend/src/page_data/*` are generated from the
+Python route definitions and Pydantic page-data models. They're committed
+so a fresh clone can build the frontend without first installing the
+Python toolchain; CI runs `just types-check-fresh` to catch drift.
+
+### Screenshots
+
+The screenshots in this README are committed under `docs/screenshots/` and
+regenerated with `just shots` (or `just shots index` for a subset). The
+harness is self-contained: it boots a throwaway Datasette on port 8492,
+seeds deterministic demo tasks and run history via a dev-only plugin in
+`frontend/scripts/shot-plugins/`, drives headless Chromium, and tears
+everything down. One-time setup: `npx playwright install chromium` (after
+`npm install` in `frontend/`). If a change affects the UI, re-run
+`just shots` and commit the updated PNGs.
