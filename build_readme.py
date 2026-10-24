@@ -41,22 +41,13 @@ def execute_query(query):
 
 TOKEN = os.environ.get("GH_TOKEN", "")
 
-OWNERS = "owner:simonw owner:dogsheep owner:datasette"
+OWNERS = "owner:FaizHarofi"
 
 # How many hours back the scheduled (incremental) run looks at. The workflow
 # runs hourly, so 3 hours gives a comfortable overlap in case a run is skipped.
 INCREMENTAL_HOURS = 3
 
-SKIP_REPOS = {
-    "playing-with-actions",
-    "simonw-readthedocs-experiments",
-    "datasette-comments",
-    "datasette-plot",
-    "datasette-write-ui",
-    "datasette-litestream",
-    "datasette-metadata-editable",
-    "datasette-short-links",
-}
+SKIP_REPOS = set()
 
 
 def replace_chunk(content, marker, chunk, inline=False):
@@ -355,16 +346,6 @@ def build(query_string, full_release_pagination):
     return cache, recent_work
 
 
-def most_recent_work(repo_nodes):
-    work = []
-    for repo in repo_nodes:
-        if repo["name"] in SKIP_REPOS or not repo.get("pushedAt"):
-            continue
-        work.append({"repo": repo["name"], "url": repo["url"], "pushed_at": repo["pushedAt"], "pushed_day": repo["pushedAt"].split("T")[0]})
-    work.sort(key=lambda repo: repo["pushed_at"], reverse=True)
-    return work
-
-
 def most_recent_releases(cache):
     """Extract the most recent release per repo from the cache, for display."""
     releases = []
@@ -457,7 +438,7 @@ if __name__ == "__main__":
     releases.sort(key=lambda r: r["published_at"], reverse=True)
     md = "\n\n".join(
         "[{repo}]({url}) - {pushed_day}".format(**repo)
-        for repo in recent_work[:8]
+        for repo in recent_work[:6]
     ) or "No recent work found."
     readme_contents = readme.open().read()
     rewritten = replace_chunk(readme_contents, "recent_releases", md)
