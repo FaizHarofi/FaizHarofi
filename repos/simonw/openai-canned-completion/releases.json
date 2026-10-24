@@ -1,8 +1,0 @@
-{
-  "description": "Tiny app running on Vercel for simulating a portion of the OpenAI API",
-  "owner": "simonw",
-  "releases": [],
-  "repo": "openai-canned-completion",
-  "total_releases": 0,
-  "url": "https://github.com/simonw/openai-canned-completion"
-}

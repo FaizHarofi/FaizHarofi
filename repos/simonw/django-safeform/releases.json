@@ -1,8 +1,0 @@
-{
-  "description": "CSRF protection for Django forms.",
-  "owner": "simonw",
-  "releases": [],
-  "repo": "django-safeform",
-  "total_releases": 0,
-  "url": "https://github.com/simonw/django-safeform"
-}

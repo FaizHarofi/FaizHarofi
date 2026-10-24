@@ -1,8 +1,0 @@
-{
-  "description": "GitHub template repository for creating new Python libraries, using the simonw/python-lib cookiecutter template ",
-  "owner": "simonw",
-  "releases": [],
-  "repo": "python-lib-template-repository",
-  "total_releases": 0,
-  "url": "https://github.com/simonw/python-lib-template-repository"
-}

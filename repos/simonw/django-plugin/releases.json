@@ -1,8 +1,0 @@
-{
-  "description": "cookiecutter template for creating new Django plugins",
-  "owner": "simonw",
-  "releases": [],
-  "repo": "django-plugin",
-  "total_releases": 0,
-  "url": "https://github.com/simonw/django-plugin"
-}

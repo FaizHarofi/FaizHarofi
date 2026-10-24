@@ -1,8 +1,0 @@
-{
-  "description": "A prototype of running Guidepup on macOS in GitHub Actions",
-  "owner": "simonw",
-  "releases": [],
-  "repo": "guidepup-macos-prototype",
-  "total_releases": 0,
-  "url": "https://github.com/simonw/guidepup-macos-prototype"
-}

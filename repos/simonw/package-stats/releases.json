@@ -1,8 +1,0 @@
-{
-  "description": "Download statistics for my PyPI packages",
-  "owner": "simonw",
-  "releases": [],
-  "repo": "package-stats",
-  "total_releases": 0,
-  "url": "https://github.com/simonw/package-stats"
-}
