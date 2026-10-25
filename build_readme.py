@@ -396,30 +396,33 @@ def most_recent_work(repo_nodes):
     return work
 
 
-def fetch_tils():
-    sql = """
-        select path, replace(title, '_', '\_') as title, url, topic, slug, created_utc
-        from til order by created_utc desc limit 6
-    """.strip()
-    return httpx.get(
-        "https://til.simonwillison.net/tils.json",
-        params={
-            "sql": sql,
-            "_shape": "array",
-        },
-    ).json()
+PORTFOLIO_URL = os.environ.get("PORTFOLIO_URL", "").rstrip("/")
+
+# posts tagged "til" live in the same portfolio RSS feed
+TIL_TAG = "til"
 
 
-def fetch_blog_entries():
-    entries = feedparser.parse("https://simonwillison.net/atom/entries/")["entries"]
-    return [
-        {
-            "title": entry["title"],
-            "url": entry["link"].split("#")[0],
-            "published": entry["published"].split("T")[0],
-        }
-        for entry in entries
-    ]
+def fetch_blog_entries(tag=None):
+    if not PORTFOLIO_URL:
+        print("PORTFOLIO_URL not set, skipping blog and TIL sections")
+        return []
+    entries = feedparser.parse(PORTFOLIO_URL + "/api/rss")["entries"]
+    if tag:
+        entries = [e for e in entries if tag in [t.get("term") for t in e.get("tags", [])]]
+    out = []
+    for entry in entries:
+        fields = entry.get("tags", [])
+        if not tag and any(t.get("term") == TIL_TAG for t in fields):
+            continue  # keep TIL out of the blog list
+        stamp = entry.get("published_parsed") or entry.get("updated_parsed")
+        out.append(
+            {
+                "title": entry["title"],
+                "url": entry["link"].split("#")[0],
+                "published": time.strftime("%Y-%m-%d", stamp) if stamp else "",
+            }
+        )
+    return out
 
 
 if __name__ == "__main__":
@@ -486,24 +489,16 @@ if __name__ == "__main__":
     )
     project_releases.open("w").write(project_releases_content)
 
-    tils = fetch_tils()
+    tils = fetch_blog_entries(TIL_TAG)[:6]
     tils_md = "\n\n".join(
-        [
-            "[{title}](https://til.simonwillison.net/{topic}/{slug}) - {created_at}".format(
-                title=til["title"],
-                topic=til["topic"],
-                slug=til["slug"],
-                created_at=til["created_utc"].split("T")[0],
-            )
-            for til in tils
-        ]
-    )
+        "[{title}]({url}) - {published}".format(**til) for til in tils
+    ) or "No TIL posts found."
     rewritten = replace_chunk(rewritten, "tils", tils_md)
 
     entries = fetch_blog_entries()[:6]
     entries_md = "\n\n".join(
         ["[{title}]({url}) - {published}".format(**entry) for entry in entries]
-    )
+    ) or "No blog posts found."
     rewritten = replace_chunk(rewritten, "blog", entries_md)
 
     readme.open("w").write(rewritten)

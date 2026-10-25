@@ -14,7 +14,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # pinned: ubuntu-latest migrates to Ubuntu 26 (runner-images#14748), bump deliberately
+    runs-on: ubuntu-24.04
     steps:
     - name: Check out repo
       uses: actions/checkout@v7
