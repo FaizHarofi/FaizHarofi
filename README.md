@@ -5,6 +5,8 @@ Currently Learning Cloud Computing - Network - Seo.
 ### Recent Work
 
 <!-- recent_releases starts -->
+[ready-for-datasette](https://github.com/datasette/ready-for-datasette) - 2026-10-31
+
 [datasette-agent](https://github.com/datasette/datasette-agent) - 2026-10-31
 <!-- recent_releases ends -->
 
