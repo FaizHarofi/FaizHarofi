@@ -5,7 +5,7 @@ Currently Learning Cloud Computing - Network - Seo.
 ### Recent Work
 
 <!-- recent_releases starts -->
-No recent work found.
+[datasette-agent](https://github.com/datasette/datasette-agent) - 2026-10-31
 <!-- recent_releases ends -->
 
 More on [GitHub](https://github.com/FaizHarofi?tab=repositories)
