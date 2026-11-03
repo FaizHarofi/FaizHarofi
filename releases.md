@@ -1,8 +1,10 @@
 # Released projects
 
-Listing <!-- releases_count starts -->2,296<!-- releases_count ends --> releases across <!-- project_count starts -->403<!-- project_count ends --> of my projects, ordered by the date of their most recent release.
+Listing <!-- releases_count starts -->2,297<!-- releases_count ends --> releases across <!-- project_count starts -->403<!-- project_count ends --> of my projects, ordered by the date of their most recent release.
 
 <!-- recent_releases starts -->
+* **[datasette-agent](https://github.com/datasette/datasette-agent)**: [0.5a0](https://github.com/datasette/datasette-agent/releases/tag/0.5a0) - ([9 releases total](https://github.com/datasette/datasette-agent/releases)) - 2026-11-03
+<br />An LLM-powered agent for Datasette
 * **[llm-tools-datasette](https://github.com/simonw/llm-tools-datasette)**: [0.1.1](https://github.com/simonw/llm-tools-datasette/releases/tag/0.1.1) - ([4 releases total](https://github.com/simonw/llm-tools-datasette/releases)) - 2026-10-18
 <br />Expose Datasette instances to LLM as a tool
 * **[llm-echo](https://github.com/simonw/llm-echo)**: [0.5](https://github.com/simonw/llm-echo/releases/tag/0.5) - ([10 releases total](https://github.com/simonw/llm-echo/releases)) - 2026-10-18
@@ -65,8 +67,6 @@ Listing <!-- releases_count starts -->2,296<!-- releases_count ends --> releases
 <br />Apps that live inside Datasette
 * **[llm-mcp-client](https://github.com/simonw/llm-mcp-client)**: [0.1a0](https://github.com/simonw/llm-mcp-client/releases/tag/0.1a0) - 2026-07-31
 <br />Access tools from MCP servers as LLM tools
-* **[datasette-agent](https://github.com/datasette/datasette-agent)**: [0.4a0](https://github.com/datasette/datasette-agent/releases/tag/0.4a0) - ([8 releases total](https://github.com/datasette/datasette-agent/releases)) - 2026-07-31
-<br />An LLM-powered agent for Datasette
 * **[datasette-llm-limits](https://github.com/datasette/datasette-llm-limits)**: [0.1a2](https://github.com/datasette/datasette-llm-limits/releases/tag/0.1a2) - ([3 releases total](https://github.com/datasette/datasette-llm-limits/releases)) - 2026-07-30
 <br />Plugin for configuring periodic limits on LLM usage in Datasette
 * **[llm-chat-completions-server](https://github.com/simonw/llm-chat-completions-server)**: [0.1a0](https://github.com/simonw/llm-chat-completions-server/releases/tag/0.1a0) - 2026-07-30
