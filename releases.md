@@ -1,8 +1,10 @@
 # Released projects
 
-Listing <!-- releases_count starts -->2,297<!-- releases_count ends --> releases across <!-- project_count starts -->403<!-- project_count ends --> of my projects, ordered by the date of their most recent release.
+Listing <!-- releases_count starts -->2,298<!-- releases_count ends --> releases across <!-- project_count starts -->403<!-- project_count ends --> of my projects, ordered by the date of their most recent release.
 
 <!-- recent_releases starts -->
+* **[datasette-apps](https://github.com/datasette/datasette-apps)**: [0.3a0](https://github.com/datasette/datasette-apps/releases/tag/0.3a0) - ([7 releases total](https://github.com/datasette/datasette-apps/releases)) - 2026-11-04
+<br />Apps that live inside Datasette
 * **[datasette-agent](https://github.com/datasette/datasette-agent)**: [0.5a0](https://github.com/datasette/datasette-agent/releases/tag/0.5a0) - ([9 releases total](https://github.com/datasette/datasette-agent/releases)) - 2026-11-03
 <br />An LLM-powered agent for Datasette
 * **[llm-tools-datasette](https://github.com/simonw/llm-tools-datasette)**: [0.1.1](https://github.com/simonw/llm-tools-datasette/releases/tag/0.1.1) - ([4 releases total](https://github.com/simonw/llm-tools-datasette/releases)) - 2026-10-18
@@ -63,8 +65,6 @@ Listing <!-- releases_count starts -->2,297<!-- releases_count ends --> releases
 <br />Datasette plugin for authenticating access using API tokens
 * **[condense-json](https://github.com/simonw/condense-json)**: [1.1](https://github.com/simonw/condense-json/releases/tag/1.1) - ([6 releases total](https://github.com/simonw/condense-json/releases)) - 2026-08-03
 <br />Python function for condensing JSON using replacement strings
-* **[datasette-apps](https://github.com/datasette/datasette-apps)**: [0.2a0](https://github.com/datasette/datasette-apps/releases/tag/0.2a0) - ([6 releases total](https://github.com/datasette/datasette-apps/releases)) - 2026-08-01
-<br />Apps that live inside Datasette
 * **[llm-mcp-client](https://github.com/simonw/llm-mcp-client)**: [0.1a0](https://github.com/simonw/llm-mcp-client/releases/tag/0.1a0) - 2026-07-31
 <br />Access tools from MCP servers as LLM tools
 * **[datasette-llm-limits](https://github.com/datasette/datasette-llm-limits)**: [0.1a2](https://github.com/datasette/datasette-llm-limits/releases/tag/0.1a2) - ([3 releases total](https://github.com/datasette/datasette-llm-limits/releases)) - 2026-07-30
