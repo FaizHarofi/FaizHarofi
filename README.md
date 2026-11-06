@@ -5,7 +5,7 @@ Currently Learning Cloud Computing - Network - Seo.
 ### Recent Work
 
 <!-- recent_releases starts -->
-No recent work found.
+[FaizHarofi](https://github.com/FaizHarofi/FaizHarofi) - 2026-11-06
 <!-- recent_releases ends -->
 
 More on [GitHub](https://github.com/FaizHarofi?tab=repositories)
