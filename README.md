@@ -5,7 +5,7 @@ Currently Learning Cloud Computing - Network - Seo.
 ### Recent Work
 
 <!-- recent_releases starts -->
-[datasette-apps](https://github.com/datasette/datasette-apps) - 2026-11-05
+No recent work found.
 <!-- recent_releases ends -->
 
 More on [GitHub](https://github.com/FaizHarofi?tab=repositories)
