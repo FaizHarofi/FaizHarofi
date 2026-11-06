@@ -39,24 +39,22 @@ def execute_query(query):
             print("  GraphQL network error, retrying...")
         time.sleep(2**attempt)
 
+
 TOKEN = os.environ.get("GH_TOKEN", "")
 
-OWNERS = "owner:FaizHarofi owner:dogsheep owner:datasette"
+OWNERS = "owner:FaizHarofi"
 
 # How many hours back the scheduled (incremental) run looks at. The workflow
 # runs hourly, so 3 hours gives a comfortable overlap in case a run is skipped.
 INCREMENTAL_HOURS = 3
 
-SKIP_REPOS = {
-    "playing-with-actions",
-    "simonw-readthedocs-experiments",
-    "datasette-comments",
-    "datasette-plot",
-    "datasette-write-ui",
-    "datasette-litestream",
-    "datasette-metadata-editable",
-    "datasette-short-links",
-}
+# Display limits only. Repository and release metadata in the cache remains
+# complete so incremental runs do not lose older data.
+RECENT_WORK_LIMIT = 5
+BLOG_LIMIT = 5
+TIL_LIMIT = 5
+
+
 
 
 def replace_chunk(content, marker, chunk, inline=False):
@@ -177,22 +175,10 @@ def make_release_entry_with_author(repo_name, release_node):
     return entry
 
 
-def filter_releases_by_author(repo_name, release_nodes):
-    """Return release entries for releases authored by simonw."""
-    releases = []
-    for node in release_nodes:
-        author = (node.get("author") or {}).get("login")
-        if author != "simonw":
-            continue
-        releases.append(make_release_entry(repo_name, node))
-    return releases
-
-
 def paginate_repo_releases(oauth_token, owner, name, after_cursor):
-    """Return all remaining raw release nodes for a single repo."""
+    """Return all remaining release nodes for a repository."""
     nodes = []
     has_next_page = True
-
     while has_next_page:
         query = (
             GRAPHQL_REPO_RELEASES_QUERY.replace("OWNER", owner)
@@ -200,24 +186,11 @@ def paginate_repo_releases(oauth_token, owner, name, after_cursor):
             .replace("AFTER", '"{}"'.format(after_cursor) if after_cursor else "null")
         )
         data = execute_query(query)
-        releases_data = data["data"]["repository"]["releases"]
-        nodes.extend(releases_data["nodes"])
-
-        page_info = releases_data["pageInfo"]
-        has_next_page = page_info["hasNextPage"]
-        after_cursor = page_info["endCursor"]
-
+        releases = data["data"]["repository"]["releases"]
+        nodes.extend(releases["nodes"])
+        has_next_page = releases["pageInfo"]["hasNextPage"]
+        after_cursor = releases["pageInfo"]["endCursor"]
     return nodes
-
-
-def fetch_all_repo_releases(oauth_token, owner, name, after_cursor):
-    """Paginate remaining releases for a repo, keeping only simonw-authored ones."""
-    nodes = paginate_repo_releases(oauth_token, owner, name, after_cursor)
-    return [
-        make_release_entry(name, node)
-        for node in nodes
-        if (node.get("author") or {}).get("login") == "simonw"
-    ]
 
 
 def collect_all_releases(repo):
@@ -263,19 +236,31 @@ def update_cache_releases(cache, repo, full_release_pagination):
     if not total:
         return
 
-    new_releases = filter_releases_by_author(name, repo["releases"]["nodes"])
+    new_releases = []
+    for node in repo["releases"]["nodes"]:
+        new_releases.append(make_release_entry(name, node))
 
     # Only the seed/full run deep-paginates repos with >100 releases; the
     # incremental run relies on the cache already holding the older ones.
     if full_release_pagination and repo["releases"]["pageInfo"]["hasNextPage"]:
-        new_releases.extend(
-            fetch_all_repo_releases(
-                TOKEN,
-                repo["owner"]["login"],
-                name,
-                repo["releases"]["pageInfo"]["endCursor"],
+        has_next_page = True
+        after_cursor = repo["releases"]["pageInfo"]["endCursor"]
+
+        while has_next_page:
+            query = (
+                GRAPHQL_REPO_RELEASES_QUERY.replace("OWNER", repo["owner"]["login"])
+                .replace("NAME", name)
+                .replace("AFTER", '"{}"'.format(after_cursor) if after_cursor else "null")
             )
-        )
+            data = execute_query(query)
+            releases_data = data["data"]["repository"]["releases"]
+            new_releases.extend(
+                [make_release_entry(name, node) for node in releases_data["nodes"]]
+            )
+
+            page_info = releases_data["pageInfo"]
+            has_next_page = page_info["hasNextPage"]
+            after_cursor = page_info["endCursor"]
 
     if name in cache:
         existing_urls = {r["url"] for r in cache[name]["releases"]}
@@ -344,8 +329,6 @@ def build(query_string, full_release_pagination):
 
     written = 0
     for repo in repo_nodes:
-        if repo["name"] in SKIP_REPOS:
-            continue
         update_cache_releases(cache, repo, full_release_pagination)
         write_repo_files(repo, collect_all_releases(repo))
         written += 1
@@ -378,8 +361,6 @@ def most_recent_work(repo_nodes):
     """Build a list of recently updated repositories."""
     work = []
     for repo in repo_nodes:
-        if repo["name"] in SKIP_REPOS:
-            continue
         pushed_at = repo.get("pushedAt")
         if not pushed_at:
             continue
@@ -407,12 +388,26 @@ def fetch_blog_entries(tag=None):
         print("PORTFOLIO_URL not set, skipping blog and TIL sections")
         return []
     entries = feedparser.parse(PORTFOLIO_URL + "/api/rss")["entries"]
+    entries = sorted(
+        entries,
+        key=lambda entry: entry.get("published_parsed")
+        or entry.get("updated_parsed")
+        or (),
+        reverse=True,
+    )
     if tag:
-        entries = [e for e in entries if tag in [t.get("term") for t in e.get("tags", [])]]
+        entries = [
+            entry
+            for entry in entries
+            if tag.lower()
+            in [t.get("term", "").lower() for t in entry.get("tags", [])]
+        ]
     out = []
     for entry in entries:
         fields = entry.get("tags", [])
-        if not tag and any(t.get("term") == TIL_TAG for t in fields):
+        if not tag and any(
+            t.get("term", "").lower() == TIL_TAG.lower() for t in fields
+        ):
             continue  # keep TIL out of the blog list
         stamp = entry.get("published_parsed") or entry.get("updated_parsed")
         out.append(
@@ -451,7 +446,7 @@ if __name__ == "__main__":
     md = "\n\n".join(
         [
             "[{repo}]({url}) - {pushed_day}".format(**repo)
-            for repo in recent_work[:8]
+            for repo in recent_work[:RECENT_WORK_LIMIT]
         ]
     ) or "No recent work found."
     readme_contents = readme.open().read()
@@ -489,13 +484,13 @@ if __name__ == "__main__":
     )
     project_releases.open("w").write(project_releases_content)
 
-    tils = fetch_blog_entries(TIL_TAG)[:6]
+    tils = fetch_blog_entries(TIL_TAG)[:TIL_LIMIT]
     tils_md = "\n\n".join(
         "[{title}]({url}) - {published}".format(**til) for til in tils
     ) or "No TIL posts found."
     rewritten = replace_chunk(rewritten, "tils", tils_md)
 
-    entries = fetch_blog_entries()[:6]
+    entries = fetch_blog_entries()[:BLOG_LIMIT]
     entries_md = "\n\n".join(
         ["[{title}]({url}) - {published}".format(**entry) for entry in entries]
     ) or "No blog posts found."
